@@ -5,12 +5,12 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-const queryClient = new QueryClient();
+// Create cache manager.
+  const queryClient = new QueryClient();
 
 export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
-  // Create cache manager.
-  const queryClient = new QueryClient();
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#f0f0f0' }}>
@@ -23,3 +23,6 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+
+// Source: https://chatgpt.com/share/698ae6cf-be4c-8009-b675-5142988e6dd4

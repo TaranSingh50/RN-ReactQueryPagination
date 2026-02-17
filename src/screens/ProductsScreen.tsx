@@ -16,17 +16,17 @@ export const ProductsScreen = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
+    refetch,
     status,
     error,
     isError,
+    isLoading
   } = useProducts();
 
   const products = data?.pages.flatMap(page => page.products) ?? [];
 
-  if (status === 'pending') {
-    return <ActivityIndicator size="large" />;
-  }
-
+  // ✅ Hook must be BEFORE any return
   useEffect(() => {
     if (isError && error instanceof Error) {
       Toast.show({
@@ -37,6 +37,11 @@ export const ProductsScreen = () => {
       });
     }
   }, [isError, error]);
+
+  if (isLoading) {
+    return <ActivityIndicator size="large" />;
+  }
+
 
   return (
     <FlatList
@@ -50,6 +55,9 @@ export const ProductsScreen = () => {
       }}
       onEndReachedThreshold={0.5}
       ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
+      // ✅ Pull to refresh
+      refreshing={isRefetching}
+      onRefresh={refetch}
     />
   );
 };
