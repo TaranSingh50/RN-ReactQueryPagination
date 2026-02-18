@@ -16,11 +16,17 @@ interface ProductResponse {
 
 export const fetchProducts = async ({
     pageParam = 0,
+    search = '',
 }: {
     pageParam?: number;
-}) => {
+    search?:string;
+}):Promise<ProductResponse> => {
+    const endpoint = search 
+    ? `/products/search?q=${search}&limit=10&skip=${pageParam}`
+    : `/products?limit=10&skip=${pageParam}`; 
+    
     const response = await apiClient.get<ProductResponse>(
-        `/products?limit=10&skip=${pageParam}`
+        endpoint
     )
 
     return response.data;

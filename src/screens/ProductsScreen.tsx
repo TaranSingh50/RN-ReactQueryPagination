@@ -1,16 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
-  Text,
+  TextInput,
   FlatList,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import { useProducts } from '../hooks/useProducts';
-import Toast from 'react-native-toast-message';
+import { useDebounce } from '../hooks/useDebounce';
 import ProductItem from '../components/ProductItem';
 
 export const ProductsScreen = () => {
+  const [search, setSearch] = useState('');
+
+  const debouncedSearch = useDebounce(search, 500);
+
   const {
     data,
     fetchNextPage,
@@ -19,45 +23,75 @@ export const ProductsScreen = () => {
     isRefetching,
     refetch,
     status,
-    error,
-    isError,
-    isLoading
-  } = useProducts();
+    isLoading,
+  } = useProducts(debouncedSearch);
 
-  const products = data?.pages.flatMap(page => page.products) ?? [];
+  /* useMemo => memoize the products array reference
+     During refresh:
+     First render (isRefetching true) → data unchanged → same products reference
+     Second render (isRefetching false) → still same reference
 
-  // ✅ Hook must be BEFORE any return
-  useEffect(() => {
-    if (isError && error instanceof Error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: error.message,
-        position: 'top',
-      });
-    }
-  }, [isError, error]);
+     FlatList won’t think data changed.
+     Much more stable.
 
-  if (isLoading) {
-    return <ActivityIndicator size="large" />;
-  }
+    🧠 Important Distinction
 
+       Re-render ≠ list item re-render
+
+       Even if parent renders:
+
+       FlatList will not re-render each item if:
+
+       - data reference is same
+       - keyExtractor stable
+       - renderItem stable
+  */
+  const products = useMemo(() => {
+  return data?.pages.flatMap(page => page.products) ?? [];
+}, [data]);
+
+  const isInitialLoading = isLoading && !data;
 
   return (
-    <FlatList
-      data={products}
-      renderItem={({ item }) => <ProductItem item={item} />}
-      keyExtractor={item => item.id.toString()}
-      onEndReached={() => {
-        if (hasNextPage) {
-          fetchNextPage();
-        }
-      }}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
-      // ✅ Pull to refresh
-      refreshing={isRefetching}
-      onRefresh={refetch}
-    />
+    <View style={{ flex: 1 }}>
+      <TextInput
+        placeholder="Search products..."
+        value={search}
+        onChangeText={setSearch}
+        style={styles.input}
+      />
+      {isInitialLoading ? (
+        <ActivityIndicator size="large" />
+      ) : (
+        <FlatList
+          data={products}
+          renderItem={({ item }) => <ProductItem item={item} />}
+          keyExtractor={item => item.id.toString()}
+          onEndReached={() => {
+            if (hasNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isFetchingNextPage ? <ActivityIndicator /> : null
+          }
+          // ✅ Pull to refresh
+          refreshing={isRefetching}
+          onRefresh={refetch}
+        />
+      )}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#464444',
+    borderRadius: 24,
+    margin: 16,
+  },
+});
