@@ -57,4 +57,7 @@ export default function App() {
   );
 }
 
-// Source: https://chatgpt.com/share/698ae6cf-be4c-8009-b675-5142988e6dd4
+/* 
+Source: Part 1. https://chatgpt.com/share/698ae6cf-be4c-8009-b675-5142988e6dd4
+        Part 2: https://chatgpt.com/share/6996ac31-d06c-8009-a68f-fa54fe561015 
+*/

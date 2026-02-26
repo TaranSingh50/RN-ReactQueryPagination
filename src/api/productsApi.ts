@@ -30,4 +30,12 @@ export const fetchProducts = async ({
     )
 
     return response.data;
-}
+};
+
+
+// ✅ DELETE PRODUCT
+export const deleteProduct = async (id: number) => {
+    // Dummyjson supports delete (mock)
+    const response = await apiClient.delete(`/products/${id}`);
+    return response.data;
+};

@@ -9,6 +9,7 @@ import {
 import { useProducts } from '../hooks/useProducts';
 import { useDebounce } from '../hooks/useDebounce';
 import ProductItem from '../components/ProductItem';
+import { useDeleteProduct } from '../hooks/useDeleteProduct';
 
 export const ProductsScreen = () => {
   const [search, setSearch] = useState('');
@@ -25,6 +26,8 @@ export const ProductsScreen = () => {
     status,
     isLoading,
   } = useProducts(debouncedSearch);
+
+  const deleteMutation = useDeleteProduct(debouncedSearch);
 
   /* useMemo => memoize the products array reference
      During refresh:
@@ -47,8 +50,8 @@ export const ProductsScreen = () => {
        - renderItem stable
   */
   const products = useMemo(() => {
-  return data?.pages.flatMap(page => page.products) ?? [];
-}, [data]);
+    return data?.pages.flatMap(page => page.products) ?? [];
+  }, [data]);
 
   const isInitialLoading = isLoading && !data;
 
@@ -65,7 +68,12 @@ export const ProductsScreen = () => {
       ) : (
         <FlatList
           data={products}
-          renderItem={({ item }) => <ProductItem item={item} />}
+          renderItem={({ item }) => (
+            <ProductItem 
+            item={item} 
+            onDelete={(id) => deleteMutation.mutate(id)} 
+            />
+          )}
           keyExtractor={item => item.id.toString()}
           onEndReached={() => {
             if (hasNextPage) {
